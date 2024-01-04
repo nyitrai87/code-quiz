@@ -63,8 +63,8 @@ const questions = [
 
 //! Click the start button:
 //! Landing page goes away
-// Timer starts
-// The first question appears (with its answers)
+//! Timer starts
+//! The first question appears (with its answers)
 
 // For each question:
 // User clicks an answer
@@ -89,43 +89,44 @@ const questions = [
 const startBtn = document.getElementById('start');
 const startScreen = document.getElementById('start-screen');
 const timeEl = document.getElementById('time');
-let secondsLeft = 75;
+let secondsLeft = 100;
+let currentRound = 0;
 
 function startQuiz(e) {
     e.preventDefault();
     startScreen.remove();
     document.getElementById('questions').setAttribute('class', 'start');
-    playingQuiz();
+    playingQuiz(currentRound);
+    setTime();
 }
 
 startBtn.addEventListener('click', startQuiz);
 
 function setTime() {
+    timeEl.textContent = secondsLeft;
     const timerInterval = setInterval(function () {
-        timeEl.textContent = secondsLeft;
         secondsLeft--;
+        timeEl.textContent = secondsLeft;
 
         if (secondsLeft === 0) {
             clearInterval(timerInterval);
-            sendMessage();
         }
     }, 1000);
 }
 
-function playingQuiz() {
-    setTime();
+function playingQuiz(i) {
     const qTitle = document.getElementById('question-title');
     const choicesList = document.getElementById('choices');
     const feedbackMsg = document.getElementById('feedback');
 
-    for (let i = 0; i < questions.length; i++) {
-        qTitle.textContent = questions[i].question;
-        for (let j = 0; j < questions[i].choices.length; j++) {
-            const choiceBtn = document.createElement('button');
-            choiceBtn.textContent = questions[i].choices[j];
-            choiceBtn.dataset.choice = choiceBtn.textContent;
-            choicesList.append(choiceBtn);
-        }
+    qTitle.textContent = questions[i].question;
+    feedbackMsg.setAttribute('class', 'feedback hide');
+    choicesList.innerHTML = '';
+    for (let j = 0; j < questions[i].choices.length; j++) {
+        const choiceBtn = document.createElement('button');
+        choiceBtn.textContent = questions[i].choices[j];
+        choiceBtn.dataset.choice = choiceBtn.textContent;
+        choicesList.append(choiceBtn);
 
         choiceBtn.addEventListener('click', function () {
             feedbackMsg.setAttribute('class', 'feedback');
@@ -134,7 +135,11 @@ function playingQuiz() {
                 feedbackMsg.innerHTML = 'True!';
             } else {
                 feedbackMsg.innerHTML = 'Wrong!';
+                secondsLeft -= 10;
             }
+            setTimeout(() => {
+                playingQuiz(i + 1);
+            }, 2000);
         })
     }
 }
