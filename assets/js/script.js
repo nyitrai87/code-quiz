@@ -36,7 +36,7 @@ const questions = [
     },
     {
         question: 'How does a FOR loop start?   ',
-        choices: ['for i = 1 to 5', 'for (i = 0; i <= 5', 'for (i = 0; i <= 5; i++)', 'for (i <= 5; i++)'],
+        choices: ['for i = 1 to 5', 'for (i = 0; i <= 5)', 'for (i = 0; i <= 5; i++)', 'for (i <= 5; i++)'],
         correct: 'for (i = 0; i <= 5; i++)'
     },
     {
