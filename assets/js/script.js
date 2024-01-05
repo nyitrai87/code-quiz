@@ -8,7 +8,7 @@ const questions = [
         question: 'Where is the correct place to insert a JavaScript?',
         choices: ['The <head> section', 'The <body> section', 'Both the <head> section and the <body> section are correct'],
         correct: 'The <body> section'
-    }/*,
+    },
     {
         question: 'The external JavaScript file must contain the <script> tag.',
         choices: ['True', 'False'],
@@ -48,7 +48,7 @@ const questions = [
         question: 'JavaScript is the same as Java.',
         choices: ['True', 'False'],
         correct: 'False'
-    },*/
+    },
 ];
 
 //! Set of questions --> array of objects
@@ -82,9 +82,9 @@ const questions = [
 
 //! User submits form
 //! Initials and score get stored in local storage
-// User is taken to the high scores page
-// High scores are listed, sorted highest to lowest
-// User has option to take the quiz again
+//! User is taken to the high scores page
+//! High scores are listed, sorted highest to lowest
+//! User has option to take the quiz again
 
 const startBtn = document.getElementById('start');
 const startScreen = document.getElementById('start-screen');
@@ -101,6 +101,7 @@ const submitBtn = document.getElementById('submit');
 let secondsLeft = 100;
 let currentRound = 0;
 let score = 0;
+let highscores = [];
 
 startBtn.addEventListener('click', startQuiz);
 
@@ -118,8 +119,9 @@ function setTime() {
         secondsLeft--;
         timeEl.textContent = secondsLeft;
 
-        if (secondsLeft === 0 || currentRound === questions.length - 1) {
+        if (secondsLeft === 0 || currentRound === questions.length) {
             clearInterval(timerInterval);
+            endQuiz();
         }
     }, 1000);
 }
@@ -145,19 +147,21 @@ function playingQuiz(i) {
                     score += 10;
                 } else {
                     feedbackMsg.innerHTML = 'Wrong!';
-                    secondsLeft -= 10;
+                    if (secondsLeft > 10) {
+                        secondsLeft -= 10;
+                    } else {
+                        secondsLeft = 2;
+                    }
                     const incorrectSound = new Audio('./assets/sfx/incorrect.wav');
                     incorrectSound.play();
-                    score -= 5;
                 }
+
                 setTimeout(() => {
                     currentRound++;
                     playingQuiz(i + 1);
                 }, 2000);
             })
         }
-    } else {
-        endQuiz();
     }
 }
 
@@ -169,8 +173,22 @@ function endQuiz() {
     scoreEl.textContent = score;
 
     submitBtn.addEventListener('click', function () {
-        localStorage.setItem('score', score);
-        localStorage.setItem('initials', JSON.stringify(initialsInputEl.value));
+        getStoredHighscores();
+        const hsObj = {
+            score: score,
+            initial: initialsInputEl.value
+        }
+
+        highscores.push(hsObj);
+        localStorage.setItem('highscores', JSON.stringify(highscores));
         window.location.replace('highscores.html');
     })
+}
+
+function getStoredHighscores() {
+    const storedHighscores = JSON.parse(localStorage.getItem('highscores'));
+
+    if (storedHighscores != null) {
+        highscores = storedHighscores;
+    }
 }
