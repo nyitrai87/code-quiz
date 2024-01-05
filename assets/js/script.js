@@ -8,7 +8,7 @@ const questions = [
         question: 'Where is the correct place to insert a JavaScript?',
         choices: ['The <head> section', 'The <body> section', 'Both the <head> section and the <body> section are correct'],
         correct: 'The <body> section'
-    },
+    }/*,
     {
         question: 'The external JavaScript file must contain the <script> tag.',
         choices: ['True', 'False'],
@@ -16,7 +16,7 @@ const questions = [
     },
     {
         question: 'How do you write "Hello World" in an alert box?',
-        choices: ['msg("Hello World");', 'alert("Hello World");', 'akertBox("Hello World");', 'msgBox("Hello World");'],
+        choices: ['msg("Hello World");', 'alert("Hello World");', 'alertBox("Hello World");', 'msgBox("Hello World");'],
         correct: 'alert("Hello World");'
     },
     {
@@ -48,7 +48,7 @@ const questions = [
         question: 'JavaScript is the same as Java.',
         choices: ['True', 'False'],
         correct: 'False'
-    },
+    },*/
 ];
 
 //! Set of questions --> array of objects
@@ -66,22 +66,22 @@ const questions = [
 //! Timer starts
 //! The first question appears (with its answers)
 
-// For each question:
-// User clicks an answer
-// Their choice is compared to the correct answer as stored in the question's object
-// If correct, tell them
-// If incorrect, tell them AND subtract time from the timer
-// Optional: play a sound for correct or incorrect
-// Either way, the question disappears after a few seconds and the next question appears
+//! For each question:
+//! User clicks an answer
+//! Their choice is compared to the correct answer as stored in the question's object
+//! If correct, tell them
+//! If incorrect, tell them AND subtract time from the timer
+//! Optional: play a sound for correct or incorrect
+//! Either way, the question disappears after a few seconds and the next question appears
 
-// After the last question:
-// Timer stops
-// Question disappears
-// Form appears for user to enter their initials
-// Display their score
+//! After the last question:
+//! Timer stops
+//! Question disappears
+//! Form appears for user to enter their initials
+//! Display their score
 
-// User submits form
-// Initials and score get stored in local storage
+//! User submits form
+//! Initials and score get stored in local storage
 // User is taken to the high scores page
 // High scores are listed, sorted highest to lowest
 // User has option to take the quiz again
@@ -89,18 +89,28 @@ const questions = [
 const startBtn = document.getElementById('start');
 const startScreen = document.getElementById('start-screen');
 const timeEl = document.getElementById('time');
+const questionsEl = document.getElementById('questions');
+const qTitle = document.getElementById('question-title');
+const choicesList = document.getElementById('choices');
+const feedbackMsg = document.getElementById('feedback');
+const endScreen = document.getElementById('end-screen');
+const scoreEl = document.getElementById('final-score');
+const initialsInputEl = document.getElementById('initials');
+const submitBtn = document.getElementById('submit');
+
 let secondsLeft = 100;
 let currentRound = 0;
+let score = 0;
+
+startBtn.addEventListener('click', startQuiz);
 
 function startQuiz(e) {
     e.preventDefault();
     startScreen.remove();
-    document.getElementById('questions').setAttribute('class', 'start');
+    questionsEl.setAttribute('class', 'start');
     playingQuiz(currentRound);
     setTime();
 }
-
-startBtn.addEventListener('click', startQuiz);
 
 function setTime() {
     timeEl.textContent = secondsLeft;
@@ -108,38 +118,59 @@ function setTime() {
         secondsLeft--;
         timeEl.textContent = secondsLeft;
 
-        if (secondsLeft === 0) {
+        if (secondsLeft === 0 || currentRound === questions.length - 1) {
             clearInterval(timerInterval);
         }
     }, 1000);
 }
 
 function playingQuiz(i) {
-    const qTitle = document.getElementById('question-title');
-    const choicesList = document.getElementById('choices');
-    const feedbackMsg = document.getElementById('feedback');
+    if (i < questions.length) {
+        qTitle.textContent = questions[i].question;
+        feedbackMsg.setAttribute('class', 'feedback hide');
+        choicesList.innerHTML = '';
+        for (let j = 0; j < questions[i].choices.length; j++) {
+            const choiceBtn = document.createElement('button');
+            choiceBtn.textContent = questions[i].choices[j];
+            choiceBtn.dataset.choice = choiceBtn.textContent;
+            choicesList.append(choiceBtn);
 
-    qTitle.textContent = questions[i].question;
-    feedbackMsg.setAttribute('class', 'feedback hide');
-    choicesList.innerHTML = '';
-    for (let j = 0; j < questions[i].choices.length; j++) {
-        const choiceBtn = document.createElement('button');
-        choiceBtn.textContent = questions[i].choices[j];
-        choiceBtn.dataset.choice = choiceBtn.textContent;
-        choicesList.append(choiceBtn);
+            choiceBtn.addEventListener('click', function () {
+                feedbackMsg.setAttribute('class', 'feedback');
 
-        choiceBtn.addEventListener('click', function () {
-            feedbackMsg.setAttribute('class', 'feedback');
-
-            if (choiceBtn.dataset.choice === questions[i].correct) {
-                feedbackMsg.innerHTML = 'True!';
-            } else {
-                feedbackMsg.innerHTML = 'Wrong!';
-                secondsLeft -= 10;
-            }
-            setTimeout(() => {
-                playingQuiz(i + 1);
-            }, 2000);
-        })
+                if (choiceBtn.dataset.choice === questions[i].correct) {
+                    feedbackMsg.innerHTML = 'True!';
+                    const correctSound = new Audio('./assets/sfx/correct.wav');
+                    correctSound.play();
+                    score += 10;
+                } else {
+                    feedbackMsg.innerHTML = 'Wrong!';
+                    secondsLeft -= 10;
+                    const incorrectSound = new Audio('./assets/sfx/incorrect.wav');
+                    incorrectSound.play();
+                    score -= 5;
+                }
+                setTimeout(() => {
+                    currentRound++;
+                    playingQuiz(i + 1);
+                }, 2000);
+            })
+        }
+    } else {
+        endQuiz();
     }
+}
+
+function endQuiz() {
+    questionsEl.remove();
+    feedbackMsg.remove();
+    endScreen.classList.remove('hide');
+
+    scoreEl.textContent = score;
+
+    submitBtn.addEventListener('click', function () {
+        localStorage.setItem('score', score);
+        localStorage.setItem('initials', JSON.stringify(initialsInputEl.value));
+        window.location.replace('highscores.html');
+    })
 }
